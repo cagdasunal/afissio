@@ -162,6 +162,9 @@ var SEL=['.sequence_aside','.sequence_step',
  /* 2026-09-24: About #why wears the homepage lede. homepage.js settles it only under #intro, and
     the homepage does not load this file, so '.intro_lede' matches About alone. */
  '.intro_lede'].join(',');
+/* 2026-10-08 (AFS-027): the site footer loads this file on every page. The homepage keeps homepage.js's own settle (#intro) and
+   the style guide's specimens stay static (Finsweet's .fs-styleguide_component). Not '#contact': About has one and settles here. */
+if(document.querySelector('#intro,.fs-styleguide_component'))return;
 var els=[].slice.call(document.querySelectorAll(SEL));
 if(!els.length)return;
 var EASE='cubic-bezier(0.33,0,0.2,1)',DUR=1600,STEP=130;
@@ -331,7 +334,9 @@ var BLOOMS=[
 BLOOMS.forEach(function(bl){bl.st=[];for(var si=0;si<=12;si++){var su=si/12,sv=Math.pow((1+Math.cos(Math.PI*su))/2,2.1)*bl.a;bl.st.push([su,'rgba('+bl.c+','+sv.toFixed(4)+')'])}});
 var mark=new Image(),markOK=false;
 mark.onload=function(){markOK=true;overlay()};
-mark.src='../brand/logo/afissio-apex-orange.svg';
+/* AFS-027 (src only; the design file keeps the relative path): the footer bundle runs on Webflow, where '../brand/logo/' 404s, and the Webflow
+   asset is not uploaded yet (S3). This is the 545-byte upload copy (sha256 6344ec38...), inline. When the asset is uploaded, swap in its hostedUrl. */
+mark.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzAgMTkyIiByb2xlPSJpbWciPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsMTkyKSBzY2FsZSgwLjEsLTAuMSkiPjxwYXRoIGZpbGw9IiNGRjY2MDAiIGQ9Ik0xMTAzIDE4OTggYy0xOSAtMjAgLTEwNTEgLTE3MjcgLTEwODggLTE3OTggLTIwIC0zOSAtMTkgLTU2IDUgLTgwIGwyMCAtMjAgNDA1IDAgNDA0IDAgMjYgMTIgMjUgMTEgMzMgNzEgYzE5IDM5IDE0NSAzMjMgMjgyIDYzMSAxMzcgMzA4IDI1NCA1NjcgMjYyIDU3NSBsMTMgMTUgMTUgLTEwIGM4IC02IDE2MSAtMjM3IDM0MCAtNTE1IDE3OSAtMjc4IDMzNyAtNTE1IDM1MSAtNTI3IDE0IC0xMyAzNSAtMjMgNDggLTIzIDI4IDAgNTYgMjkgNTYgNTggMCAzNyAtMzEwIDEwNzUgLTMyNiAxMDk0IGwtMTYgMTcgLTIyMCAzIC0yMjAgMyAtMjEgMzAgYy0xMiAxNiAtODQgMTI0IC0xNjAgMjQwIC03NSAxMTUgLTE0NSAyMTYgLTE1NCAyMjMgLTI2IDE4IC01NyAxNSAtODAgLTEweiI+PC9wYXRoPjwvZz48L3N2Zz4=';
 function overlay(){
   var i;octx.clearRect(0,0,W,H);
   if(markOK){
