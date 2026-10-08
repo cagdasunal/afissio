@@ -1361,7 +1361,8 @@ tick();
    The lists are the staged files' own: pages/contact/index.html L196-197 (#a-transaction, #a-timeline)
    and pages/style-guide/index.html L310, L328 (#sg-select, #sg-r-select). A select is rewritten ONLY while
    it still holds Webflow's own placeholder options (values First / Second / Third); the first option
-   (value="") is kept as it is, and a select an editor has given real options is left alone. No-op for
+   (value="") is kept and its text is set to the design's "Select" (F-071-3), and a select an editor has
+   given real options is left alone. No-op for
    an id that is not on the page. Without JS the select keeps Webflow's three placeholder options.
    ============================================================================ */
 (function(){
@@ -1379,6 +1380,7 @@ Object.keys(LISTS).forEach(function(id){
   const keep=opts.length&&opts[0].value===''?1:0;
   if(opts.slice(keep).some(function(o){return !PLACEHOLDER[o.value]}))return;
   opts.slice(keep).forEach(function(o){sel.removeChild(o)});
+  if(keep)opts[0].textContent='Select';
   LISTS[id].forEach(function(t){const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});
 });
 })();
