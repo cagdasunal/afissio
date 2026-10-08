@@ -35,6 +35,24 @@
    ============================================================================ */
 
 /* ============================================================================
+   0 · THE NAVBAR'S TIMING AND HOVER ATTRIBUTES (AFS-063 rows D1 and D2).
+   The design's Navbar runs `data-duration="280"` and its About dropdown `data-hover="true"`
+   `data-delay="120"`. Webflow's Element settings for those three have no API (an MCP can read
+   only domId, tag, visibility and attributes on these elements), so the live component keeps
+   Webflow's own defaults (400, false, 0). webflow.js reads these attributes when it initialises
+   at DOM ready, which comes AFTER this deferred file runs; setting them here is what it reads.
+   Attributes only: no class is touched and nothing is bound.
+   ============================================================================ */
+(function(){
+if(window.__afissioNavAttrsV1)return;window.__afissioNavAttrsV1=1;
+var nav=document.querySelector('.navbar_component');
+if(nav)nav.setAttribute('data-duration','280');
+[].slice.call(document.querySelectorAll('.navbar_dropdown')).forEach(function(d){
+  d.setAttribute('data-hover','true');d.setAttribute('data-delay','120');
+});
+})();
+
+/* ============================================================================
    1 · THE FIELD'S RESPONSIVE TRIM. One column count for the WHOLE field, trimmed from the left
    of every row, never a named case — which is what keeps the flat left edge straight at every
    width. Rows shed below 992 (five) and 768 (four). R13 made the named cases `.doc-slot` so the "never
@@ -203,10 +221,13 @@ function start(g){
    at `opacity:0` (§4c-bis) — this block ARMS the closed panel inline instead, so JS-off and print
    get the finished panel and the wipe only ever adds to something that already renders.
 
-   The 140ms close fade R12 ran is now Webflow's to own: with `w--open` removed the list is
-   `display:none` in the same frame, and a decorator cannot hold a hidden element on screen.
-   Restoring it is MANUAL DEPLOY STEP #6 — set the Dropdown's own close animation to a 140ms fade
-   in the Designer. The preview shim reproduces today's behaviour so the two can be compared.
+   The 140ms close fade (AFS-063 row D4). Webflow's base closes the panel with `display:none` in
+   the same frame, and no tool can author the Dropdown close trigger (`wf:dropdown` is unavailable
+   through the API). So `rest()` holds the just-closed panel on screen for 140ms: it sets
+   `display:block` INLINE on the list, fades `opacity` 1 to 0 with ease, then clears the inline
+   `display` and ARMS the closed state as before. This is the one place this block writes
+   `display` on a `w-*` part, and only for those 140ms; a reopen cancels it (`play()`), and it
+   never touches `w--open` or any class. Reduced motion and the ≤991 sheet skip it.
    ============================================================================ */
 (function(){
 if(window.__afissioDropdownDecorV1)return;window.__afissioDropdownDecorV1=1;
@@ -231,6 +252,7 @@ function arm(d){                                     /* the closed, pre-wipe sta
 }
 function play(d){
   var l=L(d),k=K(d),e=E(d);
+  if(l){clearTimeout(l.__afFade);l.style.display=''}      /* a reopen cancels a running close fade */
   if(k&&!mqM.matches)k.style.transform='rotate(225deg) translateY(-0.0625rem)';
   if(!l)return;
   if(reduce||mqM.matches){
@@ -256,8 +278,15 @@ function play(d){
    a.style.transition='opacity 380ms cubic-bezier(0.22,1,0.36,1) '+dl+',transform 460ms cubic-bezier(0.22,1,0.36,1) '+dl+',color 420ms cubic-bezier(0.22,1,0.36,1)';
    a.style.opacity='1';a.style.transform='translateY(0)'});
 }
+function fade(d,l){                                  /* the 140ms close fade: hold the closed panel, fade, then arm */
+  clearTimeout(l.__afFade);
+  l.style.transition='none';l.style.display='block';void l.offsetHeight;
+  l.style.transition='opacity 140ms ease';l.style.opacity='0';
+  l.__afFade=setTimeout(function(){l.style.display='';arm(d)},150);
+}
 function rest(d){
-  var k=K(d);if(k)k.style.transform='';
+  var k=K(d),l=L(d);if(k)k.style.transform='';
+  if(l&&!reduce&&!mqM.matches&&l.style.opacity==='1'){fade(d,l);return}
   arm(d);
 }
 dds.forEach(function(d){
@@ -270,7 +299,7 @@ dds.forEach(function(d){
   if(l)mo.observe(l,{attributes:true,attributeFilter:['class','style']});
   var onBp=function(){was=isOpen(d);
     var ll=L(d),ee=E(d),kk=K(d);
-    if(ll){ll.style.transition='';ll.style.opacity='';ll.style.clipPath=''}
+    if(ll){clearTimeout(ll.__afFade);ll.style.display='';ll.style.transition='';ll.style.opacity='';ll.style.clipPath=''}
     if(ee)ee.style.transform='';
     if(kk)kk.style.transform='';
     I(d).forEach(function(a){a.style.transition='';a.style.opacity='';a.style.transform=''});
@@ -295,6 +324,10 @@ dds.forEach(function(d){
    which cannot be beaten by any authorable chain because `w--open` has no style object (F7).
 
    It never writes `display` on the menu and never touches `w--open`.
+
+   AFS-063 row D3: at ≤991 it also sets the menu's inline height to the design's own
+   `calc(100svh - 4.8125rem)` and clears it above 991. The Webflow style cannot carry that calc
+   (one literal per breakpoint), so it carries `91.44svh` as the JS-off fallback.
    ============================================================================ */
 (function(){
 if(window.__afissioSheetDecorV1)return;window.__afissioSheetDecorV1=1;
@@ -303,6 +336,8 @@ if(!menu||!btn)return;
 var bars=[].slice.call(btn.querySelectorAll('.navbar_menu-bar'));
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var mq=window.matchMedia('(max-width: 991px)');
+function fit(){menu.style.height=mq.matches?'calc(100svh - 4.8125rem)':''}
+fit();
 function items(){
   var a=[].slice.call(menu.querySelectorAll('.navbar_link,.navbar_dropdown'));
   var bw=menu.querySelector('.navbar_button-wrapper');if(bw)a.push(bw);
@@ -338,7 +373,7 @@ if(was)open();
 function sync(){var now=isOpen();if(now===was)return;was=now;now?open():close()}
 new MutationObserver(sync).observe(btn,{attributes:true,attributeFilter:['class']});
 new MutationObserver(sync).observe(menu,{attributes:true,attributeFilter:['data-nav-menu-open','class']});
-function onBp(){if(!mq.matches){was=false;close()}else{was=isOpen();was?open():close()}}
+function onBp(){fit();if(!mq.matches){was=false;close()}else{was=isOpen();was?open():close()}}
 if(mq.addEventListener)mq.addEventListener('change',onBp);else if(mq.addListener)mq.addListener(onBp);
 })();
 
@@ -652,4 +687,14 @@ window.addEventListener('resize',onScroll);
 document.addEventListener('visibilitychange',onScroll);
 window.addEventListener('beforeprint',function(){detach();waiting.forEach(clear)});
 pass();
+})();
+
+/* ============================================================================
+   12 · THE LEDE'S BOLD RUNS (AFS-063 row M7). The design's `.intro_lede strong` is weight 700
+   (already the default) in #EDEDED. A Rich Text run cannot carry a class and no tool writes the
+   element's nested "All Bold Text" selector, so the colour is set inline on each run here.
+   ============================================================================ */
+(function(){
+if(window.__afissioLedeBoldV1)return;window.__afissioLedeBoldV1=1;
+[].slice.call(document.querySelectorAll('.intro_lede strong')).forEach(function(b){b.style.color='#EDEDED'});
 })();

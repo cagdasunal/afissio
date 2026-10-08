@@ -1147,7 +1147,7 @@ if(canBar){
 }
 var LIST_KEYS=['position','top','left','right','zIndex','boxSizing','backgroundColor','border','overflowY','overscrollBehavior','height','maxHeight','visibility','transition'];
 function enter(){
-  compact=true;open=false;
+  compact=true;open=false;list.style.maxHeight='';
   rail.style.position='sticky';rail.style.zIndex='20';
   head.setAttribute('role','button');head.setAttribute('tabindex','0');head.setAttribute('aria-expanded','false');
   head.setAttribute('aria-label','Contents - show all '+N+' sections');head.style.cursor='pointer';
@@ -1166,7 +1166,10 @@ function leave(){
   LIST_KEYS.forEach(function(k){list.style[k]=''});
   margins();frame();
 }
-function mode(){if(!canBar){margins();return}var want=mq?mq.matches:false;if(want&&!compact)enter();else if(!want&&compact)leave();else margins()}
+/* AFS-063: from 1280 the list's cap is the design's `calc(100vh - 14rem)`, set inline so it follows the viewport height
+   exactly; the Webflow style carries the literal `75.11vh` as the JS-off fallback (one literal per breakpoint). */
+function fit(){if(!compact&&mq&&!mq.matches)list.style.maxHeight='calc(100vh - 14rem)'}
+function mode(){if(!canBar){margins();return}var want=mq?mq.matches:false;if(want&&!compact)enter();else if(!want&&compact)leave();else margins();fit()}
 /* ---- the heading being read ---- */
 var cur=-2;
 function paint(i){
