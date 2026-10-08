@@ -1354,3 +1354,31 @@ setInterval(tick,400);
 steps.forEach(function(s){var n=s.querySelector('.procedure_node');if(n)s.addEventListener('mouseenter',function(){if(!running)ping(n,n.classList.contains('is-accent'))})});
 tick();
 })();
+
+/* ============================================================================
+   10 · FORM SELECT OPTIONS (AFS-071, 2026-10-08). Webflow has no route to write a native FormSelect's
+   options (no API field, no Bridge tool, a <select> is refused in whtml), so the options come from here.
+   The lists are the staged files' own: pages/contact/index.html L196-197 (#a-transaction, #a-timeline)
+   and pages/style-guide/index.html L310, L328 (#sg-select, #sg-r-select). A select is rewritten ONLY while
+   it still holds Webflow's own placeholder options (values First / Second / Third); the first option
+   (value="") is kept as it is, and a select an editor has given real options is left alone. No-op for
+   an id that is not on the page. Without JS the select keeps Webflow's three placeholder options.
+   ============================================================================ */
+(function(){
+if(window.__afissioSelectOptionsV1)return;window.__afissioSelectOptionsV1=1;
+const LISTS={
+'a-transaction':['Financing','Acquisition','Strategic partnership','Recapitalization','Institutional investment','Other'],
+'a-timeline':['Less than 6 months','6–12 months','12–24 months','24–36 months','Exploratory'],
+'sg-select':['One'],
+'sg-r-select':['One']};
+const PLACEHOLDER={First:1,Second:1,Third:1};
+Object.keys(LISTS).forEach(function(id){
+  const sel=document.getElementById(id);
+  if(!sel||sel.tagName!=='SELECT')return;
+  const opts=[].slice.call(sel.options);
+  const keep=opts.length&&opts[0].value===''?1:0;
+  if(opts.slice(keep).some(function(o){return !PLACEHOLDER[o.value]}))return;
+  opts.slice(keep).forEach(function(o){sel.removeChild(o)});
+  LISTS[id].forEach(function(t){const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});
+});
+})();
