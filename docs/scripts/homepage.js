@@ -35,6 +35,18 @@
    ============================================================================ */
 
 /* ============================================================================
+   00 · THE DOCUMENT LANGUAGE (AFS-069, audit AUD-01, WCAG 3.1.1 Level A).
+   Webflow serves <html> with no lang, and no API or Designer-Bridge tool sets the site language, so
+   the runtime value is set here. A lang the page already carries is left alone, which makes this a
+   no-op the day the language code is set in Site settings > Localization.
+   ============================================================================ */
+(function(){
+if(window.__afissioLangV1)return;window.__afissioLangV1=1;
+const root=document.documentElement;
+if(root&&!root.getAttribute('lang'))root.setAttribute('lang','en');
+})();
+
+/* ============================================================================
    0 · THE NAVBAR'S TIMING AND HOVER ATTRIBUTES (AFS-063 rows D1 and D2).
    The design's Navbar runs `data-duration="280"` and its About dropdown `data-hover="true"`
    `data-delay="120"`. Webflow's Element settings for those three have no API (an MCP can read
