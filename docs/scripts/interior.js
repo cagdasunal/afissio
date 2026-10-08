@@ -928,7 +928,7 @@ measure();paint();
    parallel, and a single open row keeps all six questions on one screen.
    ============================================================================ */
 (function(){
-if(window.__afissioInteriorFaqV1)return;window.__afissioInteriorFaqV1=1;
+if(window.__afissioInteriorFaqV2)return;window.__afissioInteriorFaqV2=1;
 var rows=[].slice.call(document.querySelectorAll(".faq_row"));
 if(!rows.length)return;
 var REDUCED=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -940,6 +940,16 @@ rows.forEach(function(row){
   items.push({row:row,btn:btn,panel:panel,vert:vert,open:false});
 });
 if(!items.length)return;
+/* AFS-090 (WCAG 4.1.2): the published Webflow markup carries no id on the trigger or the panel, so the toggle
+   named no panel and the panel (role=region) had no name. Attributes only - no text, no style: every row gets
+   an id on each side when it has none, the trigger points at its panel (aria-controls) and the panel is named
+   by its trigger (aria-labelledby). */
+items.forEach(function(it,i){
+  if(!it.panel.id)it.panel.id="faq-panel-"+i;
+  if(!it.btn.id)it.btn.id="faq-trigger-"+i;
+  it.btn.setAttribute("aria-controls",it.panel.id);
+  it.panel.setAttribute("aria-labelledby",it.btn.id);
+});
 function setOpen(it,open,animate){
   it.open=open;
   it.btn.setAttribute("aria-expanded",open?"true":"false");
