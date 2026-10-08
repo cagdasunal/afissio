@@ -65,11 +65,9 @@ if(nav)nav.setAttribute('data-duration','280');
 })();
 
 /* ============================================================================
-   1 · THE FIELD'S RESPONSIVE TRIM. One column count for the WHOLE field, trimmed from the left
-   of every row, never a named case — which is what keeps the flat left edge straight at every
-   width. Rows shed below 992 (five) and 768 (four). R13 made the named cases `.doc-slot` so the "never
-   trim a case" test had a class to read; R32 folded that class into `.doc-tile` and the test reads the
-   case's data-case attribute instead.
+   1 · THE FIELD'S RESPONSIVE TRIM is native since AFS-078 (2026-10-08): the rows and tiles each band
+   shows come from the `is-cut-*` combo classes in Webflow, so the Designer canvas and the live page
+   agree. This file writes no `display` on a row or a tile any more.
    ============================================================================ */
 /* PERF-V2 (2026-09-28) · ONE VISIBILITY REGISTRY for every looping animation on the site. An
    IntersectionObserver keeps {on} current for an element, so no loop has to call
@@ -78,32 +76,6 @@ if(nav)nav.setAttribute('data-duration','280');
    every page, and was the main source of scroll jank. Interior.js uses the same helper. */
 window.__afVis=window.__afVis||function(el,margin){var o={on:true};if(!el||!('IntersectionObserver' in window))return o;
   new IntersectionObserver(function(es){o.on=es[es.length-1].isIntersecting},{rootMargin:(margin||80)+'px 0px'}).observe(el);return o};
-(function(){
-if(window.__afissioFieldFitV1)return;window.__afissioFieldFitV1=1;
-var grid=document.querySelector('.doc-field_grid');if(!grid)return;
-var rows=[].slice.call(grid.querySelectorAll('.doc-row'));if(!rows.length)return;
-var kids=rows.map(function(r){return [].slice.call(r.children)});
-function fit(){
-  var field=grid.parentNode?grid.parentNode.getBoundingClientRect().width:0;
-  var probe=kids[0][kids[0].length-1],tw=probe?probe.getBoundingClientRect().width:0;
-  if(!field||!tw)return;
-  var gap=parseFloat(getComputedStyle(rows[0]).columnGap)||8;
-  var hold=Math.max(6,Math.floor((field+gap)/(tw+gap)));
-  var vw=window.innerWidth||1280,deep=vw<=767?4:(vw<=991?5:rows.length);
-  rows.forEach(function(r,ri){
-    r.style.display=ri<deep?'':'none';
-    var k=kids[ri],keep=Math.min(k.length,hold),n=k.length;
-    k.forEach(function(t){t.style.display=''});
-    for(var i=0;i<k.length&&n>keep;i++){
-      if(k[i].hasAttribute('data-case'))continue;      /* R32: a named case is never trimmed */
-      k[i].style.display='none';n--;
-    }
-  });
-}
-fit();
-var ft;window.addEventListener('resize',function(){clearTimeout(ft);ft=setTimeout(fit,140)});
-})();
-
 /* ============================================================================
    2 · HERO ANIMATION — GATHER AND FILE. The metaphor is literal: each beat assembles one case.
      t=0     the outgoing case settles back into the field
