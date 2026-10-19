@@ -279,7 +279,8 @@
       "6ac6ff9bdb0a94109ed27cbe": "legal",
       "6ac6ffa11f0156e671d56c68": "legal",
       "6ac7b6f61c03aa2ad398f9db": "legal",
-      "6ac7bd11c70b8c2b3191937a": "insight_article"
+      "6ac7bd11c70b8c2b3191937a": "insight_article",
+      "6ac8260ff71008937369f02a": "team_member"
     },
     "pageTypeRules": [
       [
@@ -293,7 +294,7 @@
     ],
     "hasBlog": true,
     "contentPrefixes": {
-      "/insights/": "insight_article"
+      "/insights/": "blog_post"
     },
     "sourceBlocks": {
       "insights_list": "insights_list",
